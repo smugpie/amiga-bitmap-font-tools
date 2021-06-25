@@ -1,3 +1,4 @@
+// readFontDescriptor.js
 // Converts an Amiga numeric font file and outputs details in JSON format
 
 const fs = require('fs');
