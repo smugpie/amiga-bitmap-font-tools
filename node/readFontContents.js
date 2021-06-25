@@ -70,4 +70,4 @@ for (let offset = 4; offset < fontFile.byteLength; offset += FONTENTRYSIZE) {
     };
 }
 
-console.log((fontData.entries));
+console.log(JSON.stringify(fontData, null, 2));
