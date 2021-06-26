@@ -62,7 +62,7 @@ const spacingData = fontFile.slice(spacingDataStart);
 
 const fontBitmapData = fontFile.slice(fontDataStart, fontDataStart + (modulo * ySize));
 const fontBitArray = BitArray.fromBuffer(fontBitmapData).toJSON();
-const fontBitmapRows = _.chunk(fontBitArray, fontBitArray.length / ySize);
+const fontBitmapRows = _.chunk(fontBitArray, modulo * 8);
 
 const fontData = {
     name: `${fontName}${fontSize}`,
@@ -98,3 +98,9 @@ for (let i = 0; i < charRange; i += 1) {
 };
 
 console.log(JSON.stringify(fontData));
+
+/* If you just want to output a single character, use this
+fontData.glyphs[97].bitmap.forEach((row) => {
+    console.log(row.join('').replace(/1/g, '##').replace(/0/g, '..'));
+});
+ */
