@@ -4,6 +4,8 @@
 
 A set of scripts, written in Node.js, to query the contents of Amiga bitmap font files.
 
+You can find some explanation of what's going on here at https://andrewgraham.dev.
+
 ## Prerequistes
 
 Install node and/or nvm. The scripts are tested on Node.js v14.

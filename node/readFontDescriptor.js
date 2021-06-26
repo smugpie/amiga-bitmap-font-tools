@@ -86,14 +86,14 @@ const fontData = {
 for (let i = 0; i < charRange; i += 1) {
     const charCode = loChar + i;
     const locationStart = locationData.readUInt16BE(i * 4);
-    const byteLength = locationData.readUInt16BE((i * 4) + 2);
+    const bitLength = locationData.readUInt16BE((i * 4) + 2);
     fontData.glyphs[charCode > hiChar ? 'notdef' : charCode] = {
         character: charCode > hiChar ? 'notdef' : String.fromCharCode(charCode),
         kerning: kerningData.readInt16BE(i * 2),
         spacing: spacingData.readInt16BE(i * 2),
         locationStart,
-        byteLength,
-        bitmap: fontBitmapRows.map((row) => row.slice(locationStart, locationStart + byteLength))
+        bitLength,
+        bitmap: fontBitmapRows.map((row) => row.slice(locationStart, locationStart + bitLength))
     }
 };
 
