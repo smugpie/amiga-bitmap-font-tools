@@ -1,6 +1,6 @@
 {
   "name": "amiga-bitmap-font-tools",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Tools to interrogate Amiga bitmap font files",
   "main": "index.js",
   "scripts": {

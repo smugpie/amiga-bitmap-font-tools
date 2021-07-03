@@ -1,0 +1,29 @@
+# CHANGELOG
+ 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+ 
+## [0.1.0] - 2021-06-03
+ 
+### Added
+- Script to open font desciptor files directly in Glyphs!
+- Example .afontjson files
+ 
+### Changed
+- Refactored Python script across multiple modules
+- Changes to .ajsonfile format. You will need to resave any converted fonts to adopt the new format.
+    - Removed kerning and spacing data for monospaced fonts
+    - Bitmap data is now a single array of strings
+ 
+### Fixed
+- Updated Node.js and Python scripts to support monospaced fonts
+ 
+## [0.0.1] - 2021-06-21
+  
+Initial release.
+ 
+### Added
+ 
+- Node scripts to convert Amiga font contents and descriptor files to JSON data (.afontjson)
+- Glyphs script to open .afontjson files
+- Example Amiga fonts
