@@ -2,15 +2,28 @@
 
 ## Introduction
 
-A set of scripts, written in Node.js, to query the contents of Amiga bitmap font files.
+Some Glyphs.app scripts, written in Python, to open Amiga bitmap font files.
+
+And a set of tools, written in Node.js, to query the contents of Amiga bitmap font files and export the data as JSON.
 
 You can find some explanation of what's going on here at https://andrewgraham.dev.
 
-## Prerequistes
+
+## Glyphs
+### Scripts
+
+`openAmigaFont.py` opens an Amiga font descriptor file in Glyphs.
+
+`openAmigaJsonFont.py` opens .afontjson files (see below)  in Glyphs.
+
+### Installation
+
+Copy all the files in the `glyphsapp` folder into the Glyphs.app scripts folder. Restart Glyphs.
+## Node.js
 
 Install node and/or nvm. The scripts are tested on Node.js v14.
 
-## Installation
+### Installation
 
 Open a terminal then
 
@@ -19,7 +32,7 @@ cd node
 npm i
 ```
 
-## Scripts
+### Scripts
 
 `readFontContents.js` reads the contents of `.font` files and extracts the data in JSON format. Change the file path in line 9 to choose the font you want to read. (I might change this to pass in the file path as an argument at some stage.)
 
@@ -32,6 +45,7 @@ node readFontContents.js > output.afontjson
 ```
 node readFontDescriptor.js > output.afontjson
 ```
+
 
 ## Sample fonts
 
