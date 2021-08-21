@@ -1,6 +1,5 @@
 def bitIsSet( value, bit ):
     bitSet = value & (2 ** bit)
-    print('value', value, 'bit', bit, value & (2 **  bit))
     return True if bitSet > 0 else False
 
 def chunks(lst, n):
