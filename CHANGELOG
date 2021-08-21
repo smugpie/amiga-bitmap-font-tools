@@ -3,10 +3,18 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
  
+## [0.2.0] - 2021-08-21
+ 
+### Added
+- Plugin to open afontjson files in Glyphs.app through the file dialog
+ 
+### Fixed
+- Glyphs.app script to open fonts should now work
+
 ## [0.1.0] - 2021-06-03
  
 ### Added
-- Script to open font desciptor files directly in Glyphs!
+- Script to open font descriptor files directly in Glyphs!
 - Example .afontjson files
  
 ### Changed
