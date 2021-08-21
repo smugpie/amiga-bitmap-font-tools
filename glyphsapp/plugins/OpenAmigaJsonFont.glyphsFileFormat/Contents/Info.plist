@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>afontjson</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string></string>
+			<key>CFBundleTypeName</key>
+			<string>Amiga Bitmap JSON Font Document</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>????</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.x.afontjson</string>
+			</array>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>ExportIcon</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>plugin</string>
+	<key>CFBundleIdentifier</key>
+	<string>uk.co.andrewgraham.openAmigaJsonFont</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>OpenAmigaJsonFont</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string> <!-- 1.0 -->
+	<key>CFBundleVersion</key>
+	<string>_0.1</string> <!-- 123 -->
+	<key>UpdateFeedURL</key>
+	<string>https://andrewgraham.dev/</string>
+	<key>productPageURL</key>
+	<string>https://andrewgraham.dev/</string>
+	<key>productReleaseNotes</key>
+	<string>Initial release.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright, Andrew Graham, 2021</string>
+	<key>NSPrincipalClass</key>
+	<string>OpenAmigaJsonFont</string>
+	<key>PyMainFileNames</key>
+	<array>
+		<string>plugin.py</string>
+	</array>
+</dict>
+</plist>
