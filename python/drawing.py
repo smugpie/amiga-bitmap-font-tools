@@ -25,5 +25,4 @@ def drawRect( myBottomLeft, myTopRight ):
 def drawPixel( rowPosition, colPosition, pixelSize ):
     bottomLeft = (colPosition * pixelSize, rowPosition * pixelSize)
     topRight = ((colPosition + 1) * pixelSize, (rowPosition + 1) * pixelSize)
-    print(bottomLeft, topRight)
     return drawRect(bottomLeft, topRight)

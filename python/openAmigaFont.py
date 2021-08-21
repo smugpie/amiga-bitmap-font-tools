@@ -18,7 +18,6 @@ fontNameBytes[:] = fontBytes[26:58]
 trimmedFontNameBytes = fontNameBytes.replace(b'\x00', b'')
 
 fontName = trimmedFontNameBytes.decode('ascii')
-print(fontName)
 ySize = int.from_bytes(fontBytes[78:80], byteorder='big', signed=False)
 style = int.from_bytes(fontBytes[80:81], byteorder='big', signed=False)
 flags = int.from_bytes(fontBytes[81:82], byteorder='big', signed=False)
@@ -104,9 +103,10 @@ try:
 
     for char, amigaGlyph in glyphs.items():
         glyph = font.newGlyph(amigaGlyph['character'])
+        if amigaGlyph['character'] != '.notdef':
+            glyph.unicode = hex(ord(amigaGlyph['character']))
         glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flagsDict['proportional'] else (xSize * pixelSize)
 
-        print(glyph.width)
         for rowNumber, rowData in enumerate(amigaGlyph['bitmap']):
             rowPosition = ySize - rowNumber - pixelsBelowBaseline
             for colNumber, colData in enumerate(rowData):

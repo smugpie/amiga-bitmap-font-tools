@@ -22,3 +22,4 @@ python/lib
 python/share
 python/bin
 python/include
+__pycache__/
