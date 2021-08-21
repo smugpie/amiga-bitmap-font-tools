@@ -9,16 +9,23 @@ And a set of tools, written in Node.js, to query the contents of Amiga bitmap fo
 You can find some explanation of what's going on here at https://andrewgraham.dev.
 
 
-## Glyphs
-### Scripts
+## Glyphs.app Scripts
 
-`openAmigaFont.py` opens an Amiga font descriptor file in Glyphs.
+`openAmigaFont.py` opens an Amiga font descriptor file in Glyphs from the Scripts menu.
 
-`openAmigaJsonFont.py` opens .afontjson files (see below)  in Glyphs.
+`openAmigaJsonFont.py` opens .afontjson files (see below) in Glyphs from the Scripts menu.
 
 ### Installation
 
-Copy all the files in the `glyphsapp` folder into the Glyphs.app scripts folder. Restart Glyphs.
+Copy all the files in the `glyphsapp/scripts` folder into the Glyphs.app scripts folder. Restart Glyphs.
+
+## Glyphs.app Plugins
+
+`OpenAmigaJsonFont.glyphsFileFormat` opens .afontjson files (see below) in Glyphs from the Open... dialog.
+
+### Installation
+
+Double click on the plugin. Restart Glyphs.
 ## Node.js
 
 Install node and/or nvm. The scripts are tested on Node.js v14.

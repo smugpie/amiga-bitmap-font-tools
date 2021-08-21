@@ -1,5 +1,4 @@
-def bitIsSet( value, bit ):
-    return True if (value & (2 ** bit)) == 1 else False;
+from utils import bitIsSet
 
 # gets a name from Amiga font style flags
 def getHumanReadableStyle( style ):
