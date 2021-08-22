@@ -4,7 +4,7 @@ import json
 from metrics import getHeight, getDepth
 from drawing import drawPixel
 from style import getHumanReadableStyle, expandStyle, expandFlags
-from utils import chunks, getRange
+from utils import chunks, getRange, getNiceGlyphName
 from fontParts.world import *
 
 binaryFile = open('../fonts/webcleaner/weblight/32', 'rb')
@@ -106,8 +106,8 @@ try:
             glyphName = '.notdef'
         else:
             unicodeInt = ord(amigaGlyph['character'])
-            glyphName = 'uni{0:04x}'.format(unicodeInt)
-            print(glyphName)
+            glyphName = getNiceGlyphName(unicodeInt)
+            print('Creating', unicodeInt, glyphName)
 
         glyph = font.newGlyph(glyphName)
         
