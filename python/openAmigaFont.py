@@ -102,9 +102,18 @@ try:
         font.info.descender = descender * pixelSize
 
     for char, amigaGlyph in glyphs.items():
-        glyph = font.newGlyph(amigaGlyph['character'])
+        if amigaGlyph['character'] == '.notdef':
+            glyphName = '.notdef'
+        else:
+            unicodeInt = ord(amigaGlyph['character'])
+            glyphName = 'uni{0:04x}'.format(unicodeInt)
+            print(glyphName)
+
+        glyph = font.newGlyph(glyphName)
+        
         if amigaGlyph['character'] != '.notdef':
-            glyph.unicode = hex(ord(amigaGlyph['character']))
+            glyph.unicode = unicodeInt
+
         glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flagsDict['proportional'] else (xSize * pixelSize)
 
         for rowNumber, rowData in enumerate(amigaGlyph['bitmap']):
