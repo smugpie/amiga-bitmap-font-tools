@@ -2,58 +2,39 @@
 
 ## Introduction
 
-Some Glyphs.app scripts, written in Python, to open Amiga bitmap font files.
+A set of tools to read and parse bitmap font files as used by the Commodore Amiga.
 
-And a set of tools, written in Node.js, to query the contents of Amiga bitmap font files and export the data as JSON.
+![An Amiga font loaded in Fontlab](amigafonts.png)
+## What are bitmap fonts?
 
-You can find some explanation of what's going on here at https://andrewgraham.dev.
+Chances are you’re reading these words on a device with nice, crisp text. The typeface you’re looking at now is drawn from mathematical lines and curves, which means it can be scaled up and down to look good at large and small sizes. It wasn’t always this way.
 
+Early home computers such as the ZX Spectrum rendered text as a series of dots, or pixels, typically arranged in a monospaced 8×8 grid. Then came next generation home computers such as the Commodore Amiga. Text on the Amiga took a step forward in that fonts were no longer limited to the 8×8 box. Glyphs could be larger and have proportional widths – it was possible to create bitmap fonts bearing a passing resemblance to proper typefaces found in print!
 
-## Glyphs.app Scripts
+On the Amiga, a bitmap font, as stored on disk, consists of:
 
-`openAmigaFont.py` opens an Amiga font descriptor file in Glyphs from the Scripts menu.
+- a `.font` file (The 'font contents' file)
+- a similarly named directory, containing a series of files bearing numeric names ('font descriptor' files) 
 
-`openAmigaJsonFont.py` opens .afontjson files (see below) in Glyphs from the Scripts menu.
+So for the font Sapphire, there is a file called `sapphire.font`, and a directory called `sapphire` containing the files `14` and `19`, corresponding to fonts with pixel heights of 14
+and 19 respectively.
 
-### Installation
+You can find more details of what's going on here at https://andrewgraham.dev/category/bitmap-fonts/.
+## What's in all the directories?
 
-Copy all the files in the `glyphsapp/scripts` folder into the Glyphs.app scripts folder. Restart Glyphs.
+Here you'll find:
 
-## Glyphs.app Plugins
+- in `/node`, some Node.js scripts to parse font contents and font descriptor files, and output the data in JSON format.
+- in `/python`, some Python scripts to convert Amiga native files into the UFO file format, suitable for loading into any font editor.
+- in `/glyphsapp`, some scripts and plugins to import Amiga native files and JSON files into the [Glyphs](https://glyphsapp.com) font editor.
 
-`OpenAmigaJsonFont.glyphsFileFormat` opens .afontjson files (see below) in Glyphs from the Open... dialog.
-
-### Installation
-
-Double click on the plugin. Restart Glyphs.
-## Node.js
-
-Install node and/or nvm. The scripts are tested on Node.js v14.
-
-### Installation
-
-Open a terminal then
-
-```
-cd node
-npm i
-```
-
-### Scripts
-
-`readFontContents.js` reads the contents of `.font` files and extracts the data in JSON format. Change the file path in line 9 to choose the font you want to read. (I might change this to pass in the file path as an argument at some stage.)
-
-```
-node readFontContents.js > output.afontjson
-```
-
-`readFontDescriptor.js` reads the contents of font descriptor files (files with numeric filenames) and extracts the data in JSON format. Change the font name and size in lines 9 and 10 to choose the font you want to read.
-
-```
-node readFontDescriptor.js > output.afontjson
-```
-
+Have a look in each folder for (slightly) more detailed READMEs.
 
 ## Sample fonts
 
-Webcleaner, a set of fonts designed for Amiga web browsers, are available in the `fonts` directory for your experimentation. Have fun!
+Webcleaner, a set of fonts designed for Amiga web browsers, are available in the `fonts\webcleaner` directory for your experimentation.
+
+Some other fonts of my own making are available in `fonts\native`. Some of the glyphs are a bit shabby but in fairness they're thirty
+years old.
+
+Have fun!
