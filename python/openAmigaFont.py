@@ -6,6 +6,7 @@ from drawing import drawPixel
 from style import getHumanReadableStyle, expandStyle, expandFlags
 from utils import chunks, getRange, getNiceGlyphName
 from fontParts.world import *
+from fontmake import font_project
 
 binaryFile = open('../fonts/webcleaner/weblight/32', 'rb')
 rawBytes = bytearray(binaryFile.read())
@@ -125,11 +126,12 @@ try:
                     glyph.appendContour(rect)
         glyph.removeOverlap()
 
-    font.save('./font.ufo')
+    font.save('./tmp/font.ufo')
+    
+    fontmaker = font_project.FontProject()
+    ufo = fontmaker.open_ufo('./tmp/font.ufo')
+    fontmaker.build_otfs([ufo], output_path='./tmp/font.otf')
+    print('Job done. Enjoy the pixels.')
 except Exception as e:
     print('Script error!')
-    import traceback
-    print(traceback.format_exc())
     raise e
-finally:
-    print('Job done. Enjoy the pixels.')
