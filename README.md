@@ -5,6 +5,11 @@
 A set of tools to read and parse bitmap font files as used by the Commodore Amiga.
 
 ![Some Amiga Fonts](exampleAmigaFonts.png)
+
+## Quick start
+
+If you're just here to convert some Amiga files into ttf or otf fonts for use in your applications, then hello and welcome! The Python script will do the job for you.
+Head on over to the `/python` folder and follow the instructions there.
 ## What are bitmap fonts?
 
 Chances are you’re reading these words on a device with nice, crisp text. The typeface you’re looking at now is drawn from mathematical lines and curves, which means it can be scaled up and down to look good at large and small sizes. It wasn’t always this way.
@@ -21,15 +26,11 @@ and 19 respectively.
 
 You can find more details of what's going on here at https://andrewgraham.dev/category/bitmap-fonts/.
 
-## Quick start
-
-If you just want to convert some Amiga files into ttf or otf fonts for use in your applications, then you'll need the Python scripts.
-Head on over to the `/python` folder and follow the instructions there.
 ## What's in all the directories?
 
 Here you'll find:
 
-- in `/python`, some Python scripts to convert Amiga native files into other formats (ttf, otf, ufo).
+- in `/python`, a Python script to convert Amiga native files into other formats (ttf, otf, ufo).
 - in `/glyphsapp`, some scripts and plugins to import Amiga native files and JSON files into the [Glyphs](https://glyphsapp.com) font editor.
 - in `/node`, some Node.js scripts to parse font contents and font descriptor files, and output the data in JSON format.
 
@@ -37,12 +38,12 @@ Have a look in each folder for (slightly) more detailed READMEs.
 
 ## Sample fonts
 
-Webcleaner, a set of fonts originally designed for Amiga web browsers, are available in the `fonts\webcleaner` directory for your experimentation.
+Webcleaner, a set of fonts originally designed for Amiga web browsers, are available in the `fonts/webcleaner` directory for your experimentation.
 
-Some other fonts of my own making are available in `fonts\native`. Some of the glyphs are a bit shabby but in fairness they're thirty
+Some other fonts of my own making are available in `fonts/native`. Some of the glyphs are a bit shabby but in fairness they're thirty
 years old and I didn't have much access to the internet back then to know what they looked like.
 
-And if you don't want to go through the rigmarole of converting them, the fonts have already been converted to .otf format. They are in `fonts\converted` for you to use.
+And if you don't want to go through the rigmarole of converting them, many of the fonts have already been converted to .otf format. They are in `fonts/converted` for you to use.
 
 ![An example font in FontLab](amigaFontsInFontLab.png)
 
