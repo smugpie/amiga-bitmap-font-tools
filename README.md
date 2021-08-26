@@ -43,4 +43,6 @@ Webcleaner, a set of fonts originally designed for Amiga web browsers, are avail
 Some other fonts of my own making are available in `fonts\native`. Some of the glyphs are a bit shabby but in fairness they're thirty
 years old and I didn't have much access to the internet back then to know what they looked like.
 
+And if you don't want to go through the rigmarole of converting them, the fonts have already been converted to .otf format. They are in `fonts\converted` for you to use.
+
 Have fun!

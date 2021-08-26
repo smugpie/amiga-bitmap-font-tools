@@ -166,7 +166,7 @@ def main(argv):
             glyph.removeOverlap()
 
         if fontFormat == 'ufo':
-            font.save(outputPath)
+            font.save(outputFile)
         else:
             font.save('./tmp/tmpFont.ufo')
             fontmaker = font_project.FontProject()
