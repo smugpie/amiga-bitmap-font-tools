@@ -2,7 +2,13 @@
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [0.3.0] - 2021-08-26
  
+### Added
+- Python script to convert fonts - no font editors required!
+- Lots of my own home made fonts!
+
 ## [0.2.0] - 2021-08-21
  
 ### Added
