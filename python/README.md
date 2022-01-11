@@ -25,7 +25,10 @@ pip3 install fontparts fontmake
 python ./openAmigaFont.py -i <input_file> -o <output_file> -f <font_format>
 ```
 
-Where `-f` can be any one of `ufo`, `ttf` or `otf`
+Where
+- `-i` should be a Amiga font descriptor file - e.g. `../fonts/native/Magnet/32`
+- `-o` should be the name of your output file - e.g. `Magnet32.otf`
+- `-f` can be any one of `ufo`, `ttf` or `otf`
 
 ## Sample fonts
 
