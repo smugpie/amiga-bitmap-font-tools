@@ -41,6 +41,10 @@ def main(argv):
     if inputFile == '':
         print('Please specify the path to an input file')
         sys.exit(2)
+
+    if inputFile.endswith('.font'):
+        print('Please run the converter on a file inside the font folder')
+        sys.exit(2)
     
     if outputFile == '':
         print('Please specify the path to an output file')

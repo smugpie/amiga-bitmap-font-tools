@@ -18,6 +18,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # python venv
+venv
+.venv
 python/lib
 python/share
 python/bin
