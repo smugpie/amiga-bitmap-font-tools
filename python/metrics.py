@@ -3,7 +3,7 @@
 def getHeight(glyphBitmap, pixelsBelowBaseline):
     height = len(glyphBitmap)
     for row in glyphBitmap:
-        if int(row) > 0:
+        if [pixel for pixel in row if pixel != '0']:
             break
         height -= 1
 
@@ -14,7 +14,7 @@ def getDepth(glyphBitmap, pixelsBelowBaseline):
     reversedGlyphBitmap = list(reversed(glyphBitmap))
     height = 0
     for row in reversedGlyphBitmap:
-        if int(row) > 0:
+        if [pixel for pixel in row if pixel != '0']:
             break
         height += 1
 

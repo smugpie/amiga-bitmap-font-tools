@@ -11,8 +11,9 @@ def getHumanReadableStyle( style ):
         name.append('Italic')
     if style['extended']:
         name.append('Extended')
-    separator = ' '
-    return separator.join(name)
+    if style['colorFont']:
+        name.append('Color')
+    return ' '.join(name)
 
 def expandStyle( style ):
     return {
@@ -22,7 +23,7 @@ def expandStyle( style ):
         'bold': bitIsSet(style, 1),
         'italic': bitIsSet(style, 2),
         'extended': bitIsSet(style, 3),
-        'colorfont': bitIsSet(style, 6),
+        'colorFont': bitIsSet(style, 6),
         'tagged': bitIsSet(style, 7)
     }
 

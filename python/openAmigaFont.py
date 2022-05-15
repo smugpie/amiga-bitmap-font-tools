@@ -4,13 +4,14 @@ import json
 import sys
 import getopt
 from shutil import rmtree
+from color import convertToColor
 from metrics import getHeight, getDepth
 from drawing import drawPixel
 from style import getHumanReadableStyle, expandStyle, expandFlags
 from utils import chunks, getRange, getNiceGlyphName
 from fontParts.world import *
 from fontmake import font_project
-
+from classes.FontStreamer import FontStreamer
 
 def main(argv):
     inputFile = ''
@@ -54,49 +55,82 @@ def main(argv):
     binaryFile = open(inputFile, 'rb')
     rawBytes = bytearray(binaryFile.read())
 
-    # strip the first 32 bytes off to make the pointer locations accurate
-    fontBytes = rawBytes[32:]
+    # Create a class that can sequentially read the contents of the file
+    # Font data starts at read position 78 
+    font = FontStreamer(rawBytes, 78)
 
-    fontNameBytes = bytearray(32)
-    fontNameBytes[:] = fontBytes[26:58]
+    # Font name is at position 26 though
+    fontNameBytes = font.getBytesAt(26, 32)
+    fontNameBytes[:] = fontNameBytes
     trimmedFontNameBytes = fontNameBytes.replace(b'\x00', b'')
 
     fontName = trimmedFontNameBytes.decode('ascii')
-    ySize = int.from_bytes(fontBytes[78:80], byteorder='big', signed=False)
-    style = int.from_bytes(fontBytes[80:81], byteorder='big', signed=False)
-    flags = int.from_bytes(fontBytes[81:82], byteorder='big', signed=False)
-    xSize = int.from_bytes(fontBytes[82:84], byteorder='big', signed=False)
-    baseline = int.from_bytes(fontBytes[84:86], byteorder='big', signed=False)
-    boldSmear = int.from_bytes(fontBytes[86:88], byteorder='big', signed=False)
-    loChar = int.from_bytes(fontBytes[90:91], byteorder='big', signed=False)
-    hiChar = int.from_bytes(fontBytes[91:92], byteorder='big', signed=False)
+    ySize = font.readNextWord()
+    style = expandStyle(font.readNextByte())
+    flags = expandFlags(font.readNextByte())
+    xSize = font.readNextWord()
+    baseline = font.readNextWord()
+    boldSmear = font.readNextWord()
+    accessors = font.readNextWord()
+    loChar = font.readNextByte()
+    hiChar = font.readNextByte()
+    fontDataPointer = font.readNextPointer()
+    modulo = font.readNextWord()
+    locationDataPointer = font.readNextPointer()
 
+    locationData = font.getBytesAt(locationDataPointer)
     # there's an extra "notdef" character which is why we add 2
     charRange = hiChar - loChar + 2
 
-    styleDict = expandStyle(style)
-    flagsDict = expandFlags(flags)
+    spacingDataPointer = font.readNextPointer()
+    kerningDataPointer = font.readNextPointer()
 
-    fontDataStart = int.from_bytes(fontBytes[92:96], byteorder='big', signed=False)
-    modulo = int.from_bytes(fontBytes[96:98], byteorder='big', signed=False)
-    locationDataStart = int.from_bytes(fontBytes[98:102], byteorder='big', signed=False)
-    locationData = fontBytes[locationDataStart:]
+    if flags['proportional']:
+        kerningData = font.getBytesAt(kerningDataPointer)
+        spacingData = font.getBytesAt(spacingDataPointer)
 
-    if flagsDict['proportional']:
-        spacingDataStart = int.from_bytes(fontBytes[102:106], byteorder='big', signed=False)
-        kerningDataStart = int.from_bytes(fontBytes[106:110], byteorder='big', signed=False)
-        kerningData = fontBytes[kerningDataStart:]
-        spacingData = fontBytes[spacingDataStart:]
+    if style['colorFont']:
+        colorFlags = font.readNextWord()
+        depth = font.readNextByte()
+        predominantColor = font.readNextByte()
+        lowestColor = font.readNextByte()
+        highestColor = font.readNextByte()
+        planePick = font.readNextByte()
+        planeOnOff = font.readNextByte()
+        colorDataPointer = font.readNextPointer()
+        colorRawData = font.getBytesAt(colorDataPointer, 8)
+        numberOfColors = int.from_bytes(colorRawData[2:4], byteorder='big', signed=True)
+        colorTablePointer = int.from_bytes(colorRawData[4:8], byteorder='big', signed=True)
 
+        colorTableRawData = font.getBytesAt(colorTablePointer, numberOfColors * 2)
+        colors = []
+        for colorIndex in range(2 ** depth):
+            color = int.from_bytes(colorTableRawData[colorIndex * 2:colorIndex * 2 + 2], byteorder='big', signed=True)
+            colors.append(convertToColor(color))
 
-    fontBitmapData = fontBytes[fontDataStart:(fontDataStart + (modulo * ySize))]
-    # From https://stackoverflow.com/questions/43787031/python-byte-array-to-bit-array
-    fontBitArray = ''.join(format(byte, '08b') for byte in fontBitmapData)
+        colorBitplanePointers = []
+        for i in range(depth):
+            colorBitplanePointers.append(font.readNextPointer())
 
-    fontBitmapRows = list(chunks(fontBitArray, modulo * 8))
+    if (style["colorFont"]):
+        # Here we're attempting to sum all the values in the bit planes so
+        # we'll end up with a colour index at each point in the bit array
+        #  e.g. for 3 bitplanes we'll have an array of values from 0-7 at each
+        # position
+        bitmapRows = []
+        bitplanes = [font.getBitArray(bitplanePointer, modulo, ySize) for bitplanePointer in colorBitplanePointers]
+        for i in range(ySize):
+            bitmapRows.append([0] * modulo * 8)
+
+        for i, bitplane in enumerate(bitplanes):
+            multiplier = 2 ** i
+            for j in range(len(bitmapRows)):
+                for k in range(len(bitmapRows[j])):
+                    bitmapRows[j][k] += int(bitplane[j][k]) * multiplier
+    else:
+        bitmapRows = font.getBitArray(fontDataPointer, modulo, ySize)
 
     print('Parsing', fontName)
-    print(flagsDict, styleDict)
 
     glyphs = {}
 
@@ -107,19 +141,19 @@ def main(argv):
         charCodeIndex = '.notdef' if charCode > hiChar else str(charCode)
         glyphs[charCodeIndex] = {
             "character": '.notdef' if charCode > hiChar else chr(charCode),
-            "bitmap": list(map(lambda arr: getRange(arr, locationStart, bitLength), fontBitmapRows))
+            "bitmap": list(map(lambda arr: getRange(arr, locationStart, bitLength), bitmapRows))
         }
-        if flagsDict['proportional']:
+        if flags['proportional']:
             glyphs[charCodeIndex]['kerning'] = int.from_bytes(kerningData[i * 2: i * 2 + 2], byteorder='big', signed=True)
             glyphs[charCodeIndex]['spacing'] = int.from_bytes(spacingData[i * 2: i * 2 + 2], byteorder='big', signed=True)
+
 
     font = NewFont(familyName=fontName, showInterface=False)
     font.info.unitsPerEm = 1000
 
-
     try:
         layer = font.layers[0]
-        layer.name = getHumanReadableStyle(styleDict)
+        layer.name = getHumanReadableStyle(style)
 
         pixelSize = int(font.info.unitsPerEm / ySize)
         print('Font size:', ySize, '... Width', xSize, '... Baseline:', baseline, '...Block size:', pixelSize)
@@ -158,13 +192,15 @@ def main(argv):
             if amigaGlyph['character'] != '.notdef':
                 glyph.unicode = unicodeInt
 
-            glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flagsDict['proportional'] else (xSize * pixelSize)
+            glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flags['proportional'] else (xSize * pixelSize)
+            if glyph.width < 0:
+                glyph.width = 0
 
             for rowNumber, rowData in enumerate(amigaGlyph['bitmap']):
                 rowPosition = ySize - rowNumber - pixelsBelowBaseline
                 for colNumber, colData in enumerate(rowData):
-                    colPosition = (colNumber + amigaGlyph['kerning']) if flagsDict['proportional'] else colNumber
-                    if colData == '1':
+                    colPosition = (colNumber + amigaGlyph['kerning']) if flags['proportional'] else colNumber
+                    if str(colData) != '0':
                         rect = drawPixel( rowPosition, colPosition, pixelSize )
                         glyph.appendContour(rect)
             glyph.removeOverlap()
