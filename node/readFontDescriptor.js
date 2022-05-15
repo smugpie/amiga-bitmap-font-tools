@@ -1,99 +1,153 @@
 // readFontDescriptor.js
 // Converts an Amiga numeric font file and outputs details in JSON format
-
 const fs = require('fs');
 const path = require('path');
-const BitArray = require('node-bitarray');
+
 const _ = require('lodash');
+const { expandStyle, expandFlags, expandColorFlags, getBitArray } = require('./helpers/utils');
+const { convertToColor } = require('./helpers/color');
+const FontStreamer = require('./classes/FontStreamer');
 
-const fontName = 'WebFixed';
-const fontSize = '15f';
+const [fontPath] = process.argv.slice(2);
 
-const rawFontFile = fs.readFileSync(
-    path.join(__dirname, `../fonts/webcleaner/${fontName}/${fontSize}`)
-);
-
-// strip the first 32 bytes off to make the pointer locations accurate
-const fontFile = rawFontFile.slice(32); 
-
-const bitIsSet = (value, bit) => {
-    return !!(value & (2 ** bit)); 
+if (!fontPath) {
+    console.log('Please specify a font path')
+    process.exit()
 }
 
-const expandStyle = (style) => ({
-    value: style,
-    normal: style === 0,
-    underlined: bitIsSet(style, 0),
-    bold: bitIsSet(style, 1),
-    italic: bitIsSet(style, 2),
-    extended: bitIsSet(style, 3),
-    colorfont: bitIsSet(style, 6),
-    tagged: bitIsSet(style, 7)
-});
+const rawFontFile = fs.readFileSync(
+    path.join(__dirname, fontPath)
+);
 
-const expandFlags = (flags) => ({
-    value: flags,
-    disk: bitIsSet(flags, 1),
-    proportional: bitIsSet(flags, 5),
-    designed: bitIsSet(flags, 6)
-});
+// Create a class that can sequentially read the contents of the file
+// Font data starts at read position 78 
+const font = new FontStreamer(rawFontFile, 78);
 
-const ySize = fontFile.readUInt16BE(78);
-const style = fontFile.readUInt8(80);
-const flags = fontFile.readUInt8(81);
-const xSize = fontFile.readUInt16BE(82);
-const baseline = fontFile.readUInt16BE(84);
-const boldSmear = fontFile.readUInt16BE(86);
-const accessors = fontFile.readUInt16BE(88);
-const loChar = fontFile.readUInt8(90);
-const hiChar = fontFile.readUInt8(91);
+// Font name is at position 26 though
+const fontName = font.getBytesAt(26, 90).toString().replace(/\u0000/g, '');
 
-const charRange = hiChar - loChar + 2; // There's an extra "notdef" character
-const expandedFlags = expandFlags(flags);
-const expandedStyle = expandStyle(style);
+const ySize = font.readNextWord();
+const style = expandStyle(font.readNextByte());
+const flags = expandFlags(font.readNextByte());
+const xSize = font.readNextWord();
+const baseline = font.readNextWord();
+const boldSmear = font.readNextWord();
+const accessors = font.readNextWord();
+const loChar = font.readNextByte();
+const hiChar = font.readNextByte();
+const fontDataPointer = font.readNextPointer();
+const modulo = font.readNextWord();
+const locationDataPointer = font.readNextPointer();
 
-const fontDataStart = fontFile.readUInt32BE(92);
-const modulo = fontFile.readUInt16BE(96);
-const locationDataStart = fontFile.readUInt32BE(98);
-const locationData = fontFile.slice(locationDataStart);
-
-const fontBitmapData = fontFile.slice(fontDataStart, fontDataStart + (modulo * ySize));
-const fontBitArray = BitArray.fromBuffer(fontBitmapData).toJSON();
-const fontBitmapRows = _.chunk(fontBitArray, modulo * 8);
 
 let fontData = {
-    name: `${fontName}${fontSize}`,
+    name: fontName,
     ySize,
-    flags: expandedFlags,
-    style: expandedStyle,
+    style,
+    flags,
     xSize,
     baseline,
     boldSmear,
     accessors,
     loChar,
     hiChar,
-    fontDataStart,
-    locationDataStart,
+    fontDataPointer,
     modulo,
+    locationDataPointer,
     glyphs: {}
 };
 
-let spacingDataStart;
-let kerningDataStart;
+const locationData = font.getBytesAt(locationDataPointer);
+const charRange = hiChar - loChar + 2; // There's an extra "notdef" character
+
+const spacingDataPointer = font.readNextPointer();
+const kerningDataPointer = font.readNextPointer();
 let spacingData;
 let kerningData;
 
-if (expandedFlags.proportional) {
-    spacingDataStart = fontFile.readUInt32BE(102);
-    kerningDataStart = fontFile.readUInt32BE(106);
-    kerningData = fontFile.slice(kerningDataStart);
-    spacingData = fontFile.slice(spacingDataStart);
+
+if (flags.proportional) {
+    kerningData = font.getBytesAt(kerningDataPointer);
+    spacingData = font.getBytesAt(spacingDataPointer);
 
     fontData = {
         ...fontData,
-        spacingDataStart,
-        kerningDataStart
+        spacingDataPointer,
+        kerningDataPointer
     }
+}
+
+let colorBitplanePointers;
+
+if (style.colorFont) {
+    const colorFlags = font.readNextWord();
+    const depth = font.readNextByte();
+    const predominantColor = font.readNextByte();
+    const lowestColor = font.readNextByte();
+    const highestColor = font.readNextByte();
+    const planePick = font.readNextByte();
+    const planeOnOff = font.readNextByte();
+    const colorDataPointer = font.readNextPointer();
+    const colorRawData = font.getBytesAt(colorDataPointer, colorDataPointer + 8);
+    const numberOfColors = colorRawData.readUInt16BE(2);
+    const colorTablePointer = colorRawData.readUInt32BE(4);
+
+    const colorTableRawData = font.getBytesAt(colorTablePointer, colorTablePointer + numberOfColors * 2);
+    colors = [];
+    for (let colorIndex = 0; colorIndex < 2 ** depth; colorIndex += 1) {
+        const color = colorTableRawData.readUInt16BE(colorIndex * 2);
+        colors.push(convertToColor(color));
+    }
+
+    colorBitplanePointers = [];
+    for (let i = 0; i < depth; i += 1) {
+        colorBitplanePointers.push(font.readNextPointer());
+    }
+
+    fontData = {
+        ...fontData,
+        colorFlags: expandColorFlags(colorFlags),
+        depth,
+        predominantColor,
+        lowestColor,
+        highestColor,
+        planePick,
+        planeOnOff,
+        colorData: {
+            numberOfColors,
+            colors,
+            colorBitplanePointers
+        }
+    }
+}
+
+let bitmapRows;
+if (style.colorFont) {
+    // Here we're attempting to sum all the values in the bit planes so
+    // we'll end up with a colour index at each point in the bit array
+    // e.g. for 3 bitplanes we'll have an array of values from 0-7 at each
+    // position
+    const bitplanes = colorBitplanePointers.map(bitplanePointer => {
+        return font.getBitArray(bitplanePointer, modulo, ySize);
+    })
+
+    bitmapRows = [];
+    for (let i = 0; i < ySize; i += 1) {
+        bitmapRows.push(new Array(modulo * 8).fill(0));
+    }
+
+    for (let i = 0; i < fontData.depth; i += 1) {
+        const bitplane = bitplanes[i];
+        const multiplier = 2 ** i;
+        for (let j = 0; j < bitmapRows.length; j += 1) {
+            for (let k = 0; k < bitmapRows[j].length; k += 1) {
+                bitmapRows[j][k] += bitplane[j][k] * multiplier;
+            }
+        }
+    }
+
+} else {
+    bitmapRows = font.getBitArray(fontDataPointer, modulo, ySize);
 }
 
 for (let i = 0; i < charRange; i += 1) {
@@ -106,10 +160,10 @@ for (let i = 0; i < charRange; i += 1) {
         character: charCode > hiChar ? '.notdef' : String.fromCharCode(charCode),
         locationStart,
         bitLength,
-        bitmap: fontBitmapRows.map((row) => row.slice(locationStart, locationStart + bitLength).join(''))
+        bitmap: bitmapRows.map((row) => row.slice(locationStart, locationStart + bitLength).join(''))
     }
 
-    if (expandedFlags.proportional) {
+    if (flags.proportional) {
         fontData.glyphs[index] = {
             kerning: kerningData.readInt16BE(i * 2),
             spacing: spacingData.readInt16BE(i * 2),
@@ -120,8 +174,8 @@ for (let i = 0; i < charRange; i += 1) {
 
 console.log(JSON.stringify(fontData));
 
-/* If you just want to output a single character, use this
-fontData.glyphs[97].bitmap.forEach((row) => {
-    console.log(row.join('').replace(/1/g, '##').replace(/0/g, '..'));
-});
- */
+// If you just want to output a single character, use this
+// fontData.glyphs[65].bitmap.forEach((row) => {
+//     console.log(row.replace(/0/g, '.'));
+// });
+
