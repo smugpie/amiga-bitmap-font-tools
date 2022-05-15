@@ -35,11 +35,11 @@ class FontStreamer {
     }
 
     getBytesAt(start, length) {
-        return this.fontFile.slice(start, length);
+        return this.fontFile.slice(start, length ? start + length : undefined);
     }
 
     getBitArray = (pointer, modulo, ySize) => {
-        const fontBitmapData = this.getBytesAt(pointer, pointer + (modulo * ySize));
+        const fontBitmapData = this.getBytesAt(pointer, modulo * ySize);
         const fontBitArray = BitArray.fromBuffer(fontBitmapData).toJSON();
         return  _.chunk(fontBitArray, modulo * 8);
     }

@@ -24,7 +24,7 @@ const rawFontFile = fs.readFileSync(
 const font = new FontStreamer(rawFontFile, 78);
 
 // Font name is at position 26 though
-const fontName = font.getBytesAt(26, 90).toString().replace(/\u0000/g, '');
+const fontName = font.getBytesAt(26, 32).toString().replace(/\u0000/g, '');
 
 const ySize = font.readNextWord();
 const style = expandStyle(font.readNextByte());
@@ -88,11 +88,11 @@ if (style.colorFont) {
     const planePick = font.readNextByte();
     const planeOnOff = font.readNextByte();
     const colorDataPointer = font.readNextPointer();
-    const colorRawData = font.getBytesAt(colorDataPointer, colorDataPointer + 8);
+    const colorRawData = font.getBytesAt(colorDataPointer, 8);
     const numberOfColors = colorRawData.readUInt16BE(2);
     const colorTablePointer = colorRawData.readUInt32BE(4);
 
-    const colorTableRawData = font.getBytesAt(colorTablePointer, colorTablePointer + numberOfColors * 2);
+    const colorTableRawData = font.getBytesAt(colorTablePointer, numberOfColors * 2);
     colors = [];
     for (let colorIndex = 0; colorIndex < 2 ** depth; colorIndex += 1) {
         const color = colorTableRawData.readUInt16BE(colorIndex * 2);
