@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const _ = require('lodash');
-const { expandStyle, expandFlags, expandColorFlags, getBitArray } = require('./helpers/utils');
+const { expandStyle, expandFlags, expandColorFlags } = require('./helpers/utils');
 const { convertToColor } = require('./helpers/color');
 const FontStreamer = require('./classes/FontStreamer');
 
@@ -160,7 +160,7 @@ for (let i = 0; i < charRange; i += 1) {
         character: charCode > hiChar ? '.notdef' : String.fromCharCode(charCode),
         locationStart,
         bitLength,
-        bitmap: bitmapRows.map((row) => row.slice(locationStart, locationStart + bitLength).join(''))
+        bitmap: bitmapRows.map((row) => row.slice(locationStart, locationStart + bitLength))
     }
 
     if (flags.proportional) {

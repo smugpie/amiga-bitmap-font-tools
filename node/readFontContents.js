@@ -3,50 +3,21 @@
 
 const fs = require('fs');
 const path = require('path');
+const { expandStyle, expandFlags, getFileContentsType } = require('./helpers/utils');
+
+const [fontPath] = process.argv.slice(2);
+
+if (!fontPath) {
+    console.log('Please specify a font path')
+    process.exit()
+}
 
 const MAXFONTPATH = 256;
 const FONTENTRYSIZE = MAXFONTPATH + 4;
-const fontFile = fs.readFileSync(path.join(__dirname, '../fonts/webcleaner/WebBold.font'));
+const fontFile = fs.readFileSync(path.join(__dirname, fontPath));
 
-const bitIsSet = (value, bit) => {
-    return !!(value & (2 ** bit)); 
-}
-
-const getFileContentsType = (fontFile) => {
-    const fileContentsType = fontFile.readUInt16BE(0);
-    const fileContentsFormats = {
-        0xF00: 'FontContents',
-        0xF02: 'TFontContents',
-        0xF03: 'Scalable'
-    }
-
-    return fileContentsFormats[fileContentsType] || 'Unknown';
-}
 
 const getNumberOfEntries = (fontFile) => fontFile.readUInt16BE(2);
-
-const expandStyle = (style) => ({
-    value: style,
-    normal: style === 0,
-    underlined: bitIsSet(style, 0),
-    bold: bitIsSet(style, 1),
-    italic: bitIsSet(style, 2),
-    extended: bitIsSet(style, 3),
-    colorfont: bitIsSet(style, 6),
-    tagged: bitIsSet(style, 7)
-});
-
-const expandFlags = (flags) => ({
-    value: flags,
-    rom: bitIsSet(flags, 0),
-    disk: bitIsSet(flags, 1),
-    reversed: bitIsSet(flags, 2),
-    tallDot: bitIsSet(flags, 3),
-    wideDot: bitIsSet(flags, 4),
-    proportional: bitIsSet(flags, 5),
-    designed: bitIsSet(flags, 6),
-    removed: bitIsSet(flags, 7)
-});
 
 const fontData = {
     fontContentsFormat: getFileContentsType(fontFile),
@@ -65,7 +36,7 @@ for (let offset = 4; offset < fontFile.byteLength; offset += FONTENTRYSIZE) {
         fontName,
         pointSize,
         ySize,
-        flags: expandFlags(flags),
+        flags: expandFlags(flags, true),
         style: expandStyle(style)
     };
 }
