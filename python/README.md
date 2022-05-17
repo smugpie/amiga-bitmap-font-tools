@@ -33,3 +33,6 @@ Where
 ## Sample fonts
 
 There are a few fonts of my own making in `../fonts` so feel free to try the script out on those!
+
+The scripts work on colour fonts too. You can find examples of Amiga colour fonts on Aminet. Particularly
+recommended is [The Kara Collection on Aminet](https://aminet.net/package/text/bfont/TKC_ColorFonts).
