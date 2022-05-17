@@ -13,6 +13,32 @@ from fontParts.world import *
 from fontmake import font_project
 from classes.FontStreamer import FontStreamer
 
+
+def getBitmap(font, bitmapPointers, modulo, ySize):
+    if (not isinstance(bitmapPointers, list)):
+        return font.getBitArray(bitmapPointers, modulo, ySize)
+    
+    # Here we're attempting to sum all the values in the bit planes so
+    # we'll end up with a colour index at each point in the bit array
+    #  e.g. for 3 bitplanes we'll have an array of values from 0-7 at each
+    # position
+    bitplanes = [font.getBitArray(bitmapPointer, modulo, ySize) for bitmapPointer in bitmapPointers]
+    bitmapRows = [([0] * modulo * 8) for _ in range(ySize)]
+
+    for i, bitplane in enumerate(bitplanes):
+        multiplier = 2 ** i
+        for j in range(len(bitmapRows)):
+            for k in range(len(bitmapRows[j])):
+                bitmapRows[j][k] += int(bitplane[j][k]) * multiplier
+    
+    return bitmapRows
+
+
+def addColorData(font):
+
+    return font
+
+
 def main(argv):
     inputFile = ''
     outputFile = ''
@@ -112,23 +138,12 @@ def main(argv):
         for i in range(depth):
             colorBitplanePointers.append(font.readNextPointer())
 
-    if (style["colorFont"]):
-        # Here we're attempting to sum all the values in the bit planes so
-        # we'll end up with a colour index at each point in the bit array
-        #  e.g. for 3 bitplanes we'll have an array of values from 0-7 at each
-        # position
-        bitmapRows = []
-        bitplanes = [font.getBitArray(bitplanePointer, modulo, ySize) for bitplanePointer in colorBitplanePointers]
-        for i in range(ySize):
-            bitmapRows.append([0] * modulo * 8)
-
-        for i, bitplane in enumerate(bitplanes):
-            multiplier = 2 ** i
-            for j in range(len(bitmapRows)):
-                for k in range(len(bitmapRows[j])):
-                    bitmapRows[j][k] += int(bitplane[j][k]) * multiplier
-    else:
-        bitmapRows = font.getBitArray(fontDataPointer, modulo, ySize)
+    bitmapRows = getBitmap(
+        font,
+        colorBitplanePointers if style["colorFont"] else fontDataPointer,
+        modulo,
+        ySize
+    )
 
     print('Parsing', fontName)
 
@@ -148,36 +163,43 @@ def main(argv):
             glyphs[charCodeIndex]['spacing'] = int.from_bytes(spacingData[i * 2: i * 2 + 2], byteorder='big', signed=True)
 
 
-    font = NewFont(familyName=fontName, showInterface=False)
-    font.info.unitsPerEm = 1000
+    outputFont = NewFont(familyName=fontName, showInterface=False)
+    outputFont.info.unitsPerEm = 1000
 
     try:
-        layer = font.layers[0]
-        layer.name = getHumanReadableStyle(style)
+        if style['colorFont']:
+            outputFont.layers[0].color = colors[1]["fontColor"]
+            outputFont.layers[0].name = f'{getHumanReadableStyle(style)}1'
 
-        pixelSize = int(font.info.unitsPerEm / ySize)
+            for i in range(2, numberOfColors):
+                outputFont.newLayer(f'{getHumanReadableStyle(style)}{i}', colors[i]["fontColor"])
+
+        else:
+            outputFont.layers[0].name = getHumanReadableStyle(style)
+
+        pixelSize = int(outputFont.info.unitsPerEm / ySize)
         print('Font size:', ySize, '... Width', xSize, '... Baseline:', baseline, '...Block size:', pixelSize)
         pixelsBelowBaseline = ySize - baseline
 
         # work out x-height from the letter x (ASCII code 120)
         xHeight = getHeight(glyphs['120']['bitmap'], pixelsBelowBaseline)
         if xHeight > 0:
-            font.info.xHeight = xHeight * pixelSize
+            outputFont.info.xHeight = xHeight * pixelSize
 
         # work out cap height from the letter E (ASCII code 69)
         capHeight = getHeight(glyphs['69']['bitmap'], pixelsBelowBaseline)
         if capHeight > 0:
-            font.info.capHeight = capHeight * pixelSize
+            outputFont.info.capHeight = capHeight * pixelSize
 
         # work out ascender from the letter b (ASCII code 98)
         ascender = getHeight(glyphs['98']['bitmap'], pixelsBelowBaseline)
         if ascender > 0:
-            font.info.ascender = ascender * pixelSize
+            outputFont.info.ascender = ascender * pixelSize
 
         # work out descender from the letter p (ASCII code 112)
         descender = getDepth(glyphs['112']['bitmap'], pixelsBelowBaseline)
         if descender < 0:
-            font.info.descender = descender * pixelSize
+            outputFont.info.descender = descender * pixelSize
 
         for char, amigaGlyph in glyphs.items():
             if amigaGlyph['character'] == '.notdef':
@@ -185,30 +207,39 @@ def main(argv):
             else:
                 unicodeInt = ord(amigaGlyph['character'])
                 glyphName = getNiceGlyphName(unicodeInt)
-                print('Creating', unicodeInt, glyphName)
+                print('Creating', unicodeInt, glyphName)     
 
-            glyph = font.newGlyph(glyphName)
-            
-            if amigaGlyph['character'] != '.notdef':
-                glyph.unicode = unicodeInt
+            for i, layer in enumerate(outputFont.layers):
+                glyph = layer.newGlyph(glyphName)
+                if amigaGlyph['character'] != '.notdef':
+                    glyph.unicode = unicodeInt
 
-            glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flags['proportional'] else (xSize * pixelSize)
-            if glyph.width < 0:
-                glyph.width = 0
+                glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flags['proportional'] else (xSize * pixelSize)
+                if glyph.width < 0:
+                    glyph.width = 0
 
-            for rowNumber, rowData in enumerate(amigaGlyph['bitmap']):
-                rowPosition = ySize - rowNumber - pixelsBelowBaseline
-                for colNumber, colData in enumerate(rowData):
-                    colPosition = (colNumber + amigaGlyph['kerning']) if flags['proportional'] else colNumber
-                    if str(colData) != '0':
-                        rect = drawPixel( rowPosition, colPosition, pixelSize )
-                        glyph.appendContour(rect)
-            glyph.removeOverlap()
+                for rowNumber, rowData in enumerate(amigaGlyph['bitmap']):
+                    rowPosition = ySize - rowNumber - pixelsBelowBaseline
+                    for colNumber, colData in enumerate(rowData):
+                        colPosition = (colNumber + amigaGlyph['kerning']) if flags['proportional'] else colNumber
+                        if int(colData) == i + 1:
+                            rect = drawPixel( rowPosition, colPosition, pixelSize )
+                            glyph.appendContour(rect)
+                
+                glyph.removeOverlap()
+
+        if style['colorFont']:
+            palette = [col["fontColor"] for col in colors]
+            mapping = [[f"Color{idx}", idx] for idx in range(1, len(colors))]
+
+            outputFont.lib["com.github.googlei18n.ufo2ft.colorPalettes"] = [palette]
+            outputFont.lib["com.github.googlei18n.ufo2ft.colorLayerMapping"] = mapping
+
 
         if fontFormat == 'ufo':
-            font.save(outputFile)
+            outputFont.save(outputFile)
         else:
-            font.save('./tmp/tmpFont.ufo')
+            outputFont.save('./tmp/tmpFont.ufo')
             fontmaker = font_project.FontProject()
             ufo = fontmaker.open_ufo('./tmp/tmpFont.ufo')
             if fontFormat == 'otf':
