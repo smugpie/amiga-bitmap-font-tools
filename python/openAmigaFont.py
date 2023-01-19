@@ -8,7 +8,7 @@ from color import convertToColor
 from metrics import getHeight, getDepth
 from drawing import drawPixel
 from style import getHumanReadableStyle, expandStyle, expandFlags
-from utils import chunks, getRange, getNiceGlyphName
+from utils import chunks, getRange, getNiceGlyphName, getCodeMap
 from fontParts.world import *
 from fontmake import font_project
 from classes.FontStreamer import FontStreamer
@@ -43,8 +43,9 @@ def main(argv):
     inputFile = ''
     outputFile = ''
     fontFormat = ''
+    codeMap = {}
     try:
-        opts, args = getopt.getopt(argv,"hi:o:f:",["input_file=","output_file=","format="])
+        opts, args = getopt.getopt(argv,"hi:o:f:c:",["input_file=","output_file=","format=","codepage="])
     except getopt.GetoptError:
         print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format>')
         print('where format is one of ufo, ttf, otf')
@@ -64,6 +65,8 @@ def main(argv):
             if fontFormat not in ('ufo', 'ttf', 'otf'):
                 print('Format must be one of ufo, ttf, otf')
                 sys.exit(2)
+        elif opt in ("-c", "--codepage"):
+            codeMap = getCodeMap(arg)
 
     if inputFile == '':
         print('Please specify the path to an input file')
@@ -77,6 +80,10 @@ def main(argv):
         print('Please specify the path to an output file')
         sys.exit(2)
         
+    if codeMap is None:
+        print('Please specify a valid codepage')
+        sys.exit(2)
+
 
     binaryFile = open(inputFile, 'rb')
     rawBytes = bytearray(binaryFile.read())
@@ -151,11 +158,14 @@ def main(argv):
 
     for i in range(0, charRange):
         charCode = loChar + i
+        defaultGlyphName = '.notdef' if charCode > hiChar else getNiceGlyphName(charCode)
+        unicodeInt, glyphName = codeMap.get(charCode, (charCode, defaultGlyphName))
         locationStart = int.from_bytes(locationData[i * 4:i * 4 + 2], byteorder='big', signed=False)
         bitLength = int.from_bytes(locationData[i * 4 + 2:i * 4 + 4], byteorder='big', signed=False)
-        charCodeIndex = '.notdef' if charCode > hiChar else str(charCode)
+        charCodeIndex = '.notdef' if charCode > hiChar else str(unicodeInt)
         glyphs[charCodeIndex] = {
-            "character": '.notdef' if charCode > hiChar else chr(charCode),
+            "character": '.notdef' if charCode > hiChar else chr(unicodeInt),
+            "glyphName": glyphName,
             "bitmap": list(map(lambda arr: getRange(arr, locationStart, bitLength), bitmapRows))
         }
         if flags['proportional']:
@@ -206,7 +216,7 @@ def main(argv):
                 glyphName = '.notdef'
             else:
                 unicodeInt = ord(amigaGlyph['character'])
-                glyphName = getNiceGlyphName(unicodeInt)
+                glyphName = amigaGlyph['glyphName']
                 print('Creating', unicodeInt, glyphName)     
 
             for i, layer in enumerate(outputFont.layers):
