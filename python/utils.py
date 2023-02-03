@@ -44,4 +44,31 @@ def getNiceGlyphName(unicode):
         'ucircumflex', 'udieresis', 'yacute', 'thorn', 'ydieresis'
     ]
     return glyphNames[unicode - 32]
-    
+
+
+def getCodeMap(codepage):
+    codeMaps = {
+        'AmigaPL': {
+            0xC2: (0x0104, 'Aogonek'),
+            0xCA: (0x0106, 'Cacute'),
+            0xCB: (0x0118, 'Eogonek'),
+            0xCE: (0x0141, 'Lslash'),
+            0xCF: (0x0143, 'Nacute'),
+            0xD3: (0x00D3, 'Oacute'),
+            0xD4: (0x015A, 'Sacute'),
+            0xDA: (0x0179, 'Zacute'),
+            0xDB: (0x017B, 'Zdotaccent'),
+            0xE2: (0x0105, 'aogonek'),
+            0xEA: (0x0107, 'cacute'),
+            0xEB: (0x0119, 'eogonek'),
+            0xEE: (0x0142, 'lslash'),
+            0xEF: (0x0144, 'nacute'),
+            0xF3: (0x00F3, 'oacute'),
+            0xF4: (0x015B, 'sacute'),
+            0xFA: (0x017A, 'zacute'),
+            0xFB: (0x017C, 'zdotaccent'),
+        }
+    }
+    if codepage in ('AmigaPL', 'amigapl', 'amiga-pl'):
+        return codeMaps['AmigaPL']
+    return None
