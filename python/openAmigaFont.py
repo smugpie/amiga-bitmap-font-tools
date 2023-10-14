@@ -42,24 +42,27 @@ def addColorData(font):
 def main(argv):
     inputFile = ''
     outputFile = ''
+    tmpPath = ''
     fontFormat = ''
     codeMap = {}
     try:
-        opts, args = getopt.getopt(argv,"hi:o:f:c:",["input_file=","output_file=","format=","codepage="])
+        opts, args = getopt.getopt(argv,"hi:o:t:f:c:",["input_file=","output_file=","tmp_path=","format=","codepage="])
     except getopt.GetoptError:
-        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format>')
+        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -t <tmpPath> -f <format>')
         print('where format is one of ufo, ttf, otf')
         sys.exit(2)
     
     for opt, arg in opts:
         if opt == '-h':
-            print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format>')
+            print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -t <tmpPath> -f <format>')
             print('where format is one of ufo, ttf, otf')
             sys.exit()
         elif opt in ("-i", "--input_file"):
             inputFile = arg
         elif opt in ("-o", "--output_file"):
             outputFile = arg
+        elif opt in ("-t", "--tmp_path"):
+            tmpPath = arg
         elif opt in ("-f", "--format"):
             fontFormat = arg
             if fontFormat not in ('ufo', 'ttf', 'otf'):
@@ -80,6 +83,10 @@ def main(argv):
         print('Please specify the path to an output file')
         sys.exit(2)
         
+    if tmpPath == '':
+        print('Please specify the path to where a tmp .ufo file can be created')
+        sys.exit(2)
+
     if codeMap is None:
         print('Please specify a valid codepage')
         sys.exit(2)
@@ -249,14 +256,14 @@ def main(argv):
         if fontFormat == 'ufo':
             outputFont.save(outputFile)
         else:
-            outputFont.save('./tmp/tmpFont.ufo')
+            outputFont.save(tmpPath)
             fontmaker = font_project.FontProject()
-            ufo = fontmaker.open_ufo('./tmp/tmpFont.ufo')
+            ufo = fontmaker.open_ufo(tmpPath)
             if fontFormat == 'otf':
                 fontmaker.build_otfs([ufo], output_path=outputFile)
             else:
                 fontmaker.build_ttfs([ufo], output_path=outputFile)
-            rmtree('./tmp/tmpFont.ufo')
+            rmtree(tmpPath)
 
         print('Job done. Enjoy the pixels.')
     except Exception as e:
