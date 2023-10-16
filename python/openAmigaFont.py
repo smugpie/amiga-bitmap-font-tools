@@ -42,13 +42,13 @@ def addColorData(font):
 def main(argv):
     inputFile = ''
     outputFile = ''
-    tmpPath = ''
+    tmpPath = './tmp/tmpFont.ufo'
     fontFormat = ''
     codeMap = {}
     try:
         opts, args = getopt.getopt(argv,"hi:o:t:f:c:",["input_file=","output_file=","tmp_path=","format=","codepage="])
     except getopt.GetoptError:
-        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -t <tmpPath> -f <format>')
+        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> -t [tmpPath] ')
         print('where format is one of ufo, ttf, otf')
         sys.exit(2)
     
@@ -81,10 +81,6 @@ def main(argv):
     
     if outputFile == '':
         print('Please specify the path to an output file')
-        sys.exit(2)
-        
-    if tmpPath == '':
-        print('Please specify the path to where a tmp .ufo file can be created')
         sys.exit(2)
 
     if codeMap is None:
