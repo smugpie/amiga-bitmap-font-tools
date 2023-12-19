@@ -45,16 +45,17 @@ def main(argv):
     tmpPath = './tmp/tmpFont.ufo'
     fontFormat = ''
     codeMap = {}
+    aspectRatio = 1.0
     try:
-        opts, args = getopt.getopt(argv,"hi:o:t:f:c:",["input_file=","output_file=","tmp_path=","format=","codepage="])
+        opts, args = getopt.getopt(argv,"hi:o:t:f:c:a:",["input_file=","output_file=","tmp_path=","format=","codepage=","aspect_ratio="])
     except getopt.GetoptError:
-        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> -t [tmpPath] ')
+        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> [-t tmpPath] [-c codemap] [-a aspectRatio]')
         print('where format is one of ufo, ttf, otf')
         sys.exit(2)
     
     for opt, arg in opts:
         if opt == '-h':
-            print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -t <tmpPath> -f <format>')
+            print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> [-t <tmpPath>] [-c codemap] [-a aspectRatio]')
             print('where format is one of ufo, ttf, otf')
             sys.exit()
         elif opt in ("-i", "--input_file"):
@@ -70,6 +71,8 @@ def main(argv):
                 sys.exit(2)
         elif opt in ("-c", "--codepage"):
             codeMap = getCodeMap(arg)
+        elif opt in ("-a", "--aspect_ratio"):
+            aspectRatio = arg
 
     if inputFile == '':
         print('Please specify the path to an input file')
@@ -192,29 +195,30 @@ def main(argv):
         else:
             outputFont.layers[0].name = getHumanReadableStyle(style)
 
-        pixelSize = int(outputFont.info.unitsPerEm / ySize)
-        print('Font size:', ySize, '... Width', xSize, '... Baseline:', baseline, '...Block size:', pixelSize)
+        vPixelSize = int(outputFont.info.unitsPerEm / ySize)
+        hPixelSize = int(outputFont.info.unitsPerEm / ySize) * float(aspectRatio)
+        print('Font size:', ySize, '... Width', xSize, '... Baseline:', baseline, '...Block size:', vPixelSize, 'x', hPixelSize)
         pixelsBelowBaseline = ySize - baseline
 
         # work out x-height from the letter x (ASCII code 120)
         xHeight = getHeight(glyphs['120']['bitmap'], pixelsBelowBaseline)
         if xHeight > 0:
-            outputFont.info.xHeight = xHeight * pixelSize
+            outputFont.info.xHeight = xHeight * vPixelSize
 
         # work out cap height from the letter E (ASCII code 69)
         capHeight = getHeight(glyphs['69']['bitmap'], pixelsBelowBaseline)
         if capHeight > 0:
-            outputFont.info.capHeight = capHeight * pixelSize
+            outputFont.info.capHeight = capHeight * vPixelSize
 
         # work out ascender from the letter b (ASCII code 98)
         ascender = getHeight(glyphs['98']['bitmap'], pixelsBelowBaseline)
         if ascender > 0:
-            outputFont.info.ascender = ascender * pixelSize
+            outputFont.info.ascender = ascender * vPixelSize
 
         # work out descender from the letter p (ASCII code 112)
         descender = getDepth(glyphs['112']['bitmap'], pixelsBelowBaseline)
         if descender < 0:
-            outputFont.info.descender = descender * pixelSize
+            outputFont.info.descender = descender * vPixelSize
 
         for char, amigaGlyph in glyphs.items():
             if amigaGlyph['character'] == '.notdef':
@@ -229,7 +233,7 @@ def main(argv):
                 if amigaGlyph['character'] != '.notdef':
                     glyph.unicode = unicodeInt
 
-                glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * pixelSize) if flags['proportional'] else (xSize * pixelSize)
+                glyph.width = ((amigaGlyph['spacing'] + amigaGlyph['kerning']) * hPixelSize) if flags['proportional'] else (xSize * hPixelSize)
                 if glyph.width < 0:
                     glyph.width = 0
 
@@ -238,7 +242,7 @@ def main(argv):
                     for colNumber, colData in enumerate(rowData):
                         colPosition = (colNumber + amigaGlyph['kerning']) if flags['proportional'] else colNumber
                         if int(colData) == i + 1:
-                            rect = drawPixel( rowPosition, colPosition, pixelSize )
+                            rect = drawPixel( rowPosition, colPosition, hPixelSize, vPixelSize )
                             glyph.appendContour(rect)
                 
                 glyph.removeOverlap()

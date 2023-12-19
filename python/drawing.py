@@ -22,7 +22,7 @@ def drawRect( myBottomLeft, myTopRight ):
     myRect.closed = True
     return myRect
 
-def drawPixel( rowPosition, colPosition, pixelSize ):
-    bottomLeft = (colPosition * pixelSize, rowPosition * pixelSize)
-    topRight = ((colPosition + 1) * pixelSize, (rowPosition + 1) * pixelSize)
+def drawPixel( rowPosition, colPosition, hPixelSize, vPixelSize ):
+    bottomLeft = (colPosition * hPixelSize, rowPosition * vPixelSize)
+    topRight = ((colPosition + 1) * hPixelSize, (rowPosition + 1) * vPixelSize)
     return drawRect(bottomLeft, topRight)

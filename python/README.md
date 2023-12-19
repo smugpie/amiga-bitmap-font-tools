@@ -29,7 +29,9 @@ Where
 - `-i` should be a Amiga font descriptor file - e.g. `../fonts/native/Magnet/32`
 - `-o` should be the name of your output file - e.g. `Magnet32.otf`
 - `-f` can be any one of `ufo`, `ttf` or `otf`
+- `-t` is the location for temporary files and is optional
 - `-c` is optional, only `AmigaPL` codepage is implemented
+- `-a` is optional, and can be used to control the aspect ratio of the pixels - handy if you want to stretch or narrow each glyph. For a half-width font, use 0.5
 
 ## Sample fonts
 
