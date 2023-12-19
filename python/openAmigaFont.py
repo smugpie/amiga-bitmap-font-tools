@@ -156,7 +156,7 @@ def main(argv):
     )
 
     if fontName == '':
-        fontName = 'AmigaFont'
+        fontName = os.path.basename(os.path.dirname(inputFile))
     print('Parsing', fontName)
 
     glyphs = {}
