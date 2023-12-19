@@ -155,6 +155,8 @@ def main(argv):
         ySize
     )
 
+    if fontName == '':
+        fontName = 'AmigaFont'
     print('Parsing', fontName)
 
     glyphs = {}
