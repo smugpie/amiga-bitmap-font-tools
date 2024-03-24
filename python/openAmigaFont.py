@@ -2,7 +2,7 @@
 
 import json
 import sys
-import getopt
+import argparse
 from shutil import rmtree
 from color import convertToColor
 from metrics import getHeight, getDepth
@@ -43,47 +43,39 @@ def main(argv):
     inputFile = ''
     outputFile = ''
     tmpPath = './tmp/tmpFont.ufo'
-    fontFormat = ''
+    fontFormat = 'ttf'
     codeMap = {}
     aspectRatio = 1.0
-    try:
-        opts, args = getopt.getopt(argv,"hi:o:t:f:c:a:",["input_file=","output_file=","tmp_path=","format=","codepage=","aspect_ratio="])
-    except getopt.GetoptError:
-        print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> [-t tmpPath] [-c codemap] [-a aspectRatio]')
-        print('where format is one of ufo, ttf, otf')
-        sys.exit(2)
-    
-    for opt, arg in opts:
-        if opt == '-h':
-            print('Usage: openAmigaFont.py -i <inputfile> -o <outputfile> -f <format> [-t <tmpPath>] [-c codemap] [-a aspectRatio]')
-            print('where format is one of ufo, ttf, otf')
-            sys.exit()
-        elif opt in ("-i", "--input_file"):
-            inputFile = arg
-        elif opt in ("-o", "--output_file"):
-            outputFile = arg
-        elif opt in ("-t", "--tmp_path"):
-            tmpPath = arg
-        elif opt in ("-f", "--format"):
-            fontFormat = arg
-            if fontFormat not in ('ufo', 'ttf', 'otf'):
-                print('Format must be one of ufo, ttf, otf')
-                sys.exit(2)
-        elif opt in ("-c", "--codepage"):
-            codeMap = getCodeMap(arg)
-        elif opt in ("-a", "--aspect_ratio"):
-            aspectRatio = arg
+    usePixelComponent = False
 
-    if inputFile == '':
-        print('Please specify the path to an input file')
-        sys.exit(2)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="Path to Amiga file - should not be the .font file")
+    parser.add_argument("output_file", help="Path to output file")
+    parser.add_argument("-f", "--format", help="Output format, can be ttf, otf or ufo")
+    parser.add_argument("-t", "--tmp_path", help="Temp path location for intermediate files")
+    parser.add_argument("-c", "--codepage", help="Codepage")
+    parser.add_argument("-a", "--aspect_ratio", type=float, help="Aspect ratio of pixels. Adjust if you want narrower or wider pixels. Default: 1.0")
+    parser.add_argument("-p", "--pixel_component", action="store_true", help="Construct font from a pixel component. Use this option if you want to change the shape of the pixel")
+
+    args = parser.parse_args()
+    inputFile = args.input_file
+    outputFile = args.output_file
+    if args.format:
+        fontFormat = args.format
+        if fontFormat not in ('ufo', 'ttf', 'otf'):
+            print('Format must be one of ufo, ttf, otf')
+            sys.exit(2)
+        if args.tmp_path:
+            tmpPath = args.tmp_path
+        if args.codepage:
+            codeMap = getCodeMap(args.codepage)
+        if args.aspect_ratio:
+            aspectRatio = args.aspect_ration
+        if args.pixel_component:
+            usePixelComponent = args.pixel_component
 
     if inputFile.endswith('.font'):
         print('Please run the converter on a file inside the font folder')
-        sys.exit(2)
-    
-    if outputFile == '':
-        print('Please specify the path to an output file')
         sys.exit(2)
 
     if codeMap is None:
@@ -220,6 +212,14 @@ def main(argv):
         if descender < 0:
             outputFont.info.descender = descender * vPixelSize
 
+        # create a pixel component if that option is set
+        if usePixelComponent:
+            for i, layer in enumerate(outputFont.layers):
+                glyph = layer.newGlyph('pixel')
+                glyph.width = 0
+                rect = drawPixel( 0, 0, hPixelSize, vPixelSize )
+                glyph.appendContour(rect)
+
         for char, amigaGlyph in glyphs.items():
             if amigaGlyph['character'] == '.notdef':
                 glyphName = '.notdef'
@@ -242,10 +242,14 @@ def main(argv):
                     for colNumber, colData in enumerate(rowData):
                         colPosition = (colNumber + amigaGlyph['kerning']) if flags['proportional'] else colNumber
                         if int(colData) == i + 1:
-                            rect = drawPixel( rowPosition, colPosition, hPixelSize, vPixelSize )
-                            glyph.appendContour(rect)
+                            if usePixelComponent:
+                                glyph.appendComponent('pixel', offset=(colPosition * hPixelSize, rowPosition * vPixelSize))
+                            else:
+                                rect = drawPixel( rowPosition, colPosition, hPixelSize, vPixelSize )
+                                glyph.appendContour(rect)
                 
-                glyph.removeOverlap()
+                if usePixelComponent == False:
+                    glyph.removeOverlap()
 
         if style['colorFont']:
             palette = [col["fontColor"] for col in colors]

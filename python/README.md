@@ -8,30 +8,33 @@ Uses [fontParts](https://fontparts.robotools.dev/en/stable/) and [fontmake](http
 
 ## Prerequisites
 
-- Python - tested on v3.9.
+- Python - tested on v3.11.
 ## Installation
 
 The best way of running Python is to create a virtual environment. Open a terminal in this folder (`/python`)
 
 ```
-python3 -m venv .
-source ./bin/activate
-pip3 install fontparts fontmake
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
 ```
 
 ## Usage
 
 ```
-python ./openAmigaFont.py -i <input_file> -o <output_file> -f <font_format> [-c <codepage>]
+python ./openAmigaFont.py [OPTIONS] <input_file> <output_file>
 ```
 
 Where
-- `-i` should be a Amiga font descriptor file - e.g. `../fonts/native/Magnet/32`
-- `-o` should be the name of your output file - e.g. `Magnet32.otf`
-- `-f` can be any one of `ufo`, `ttf` or `otf`
-- `-t` is the location for temporary files and is optional
-- `-c` is optional, only `AmigaPL` codepage is implemented
-- `-a` is optional, and can be used to control the aspect ratio of the pixels - handy if you want to stretch or narrow each glyph. For a half-width font, use 0.5
+- `input_file` should be a Amiga font descriptor file - e.g. `../fonts/native/Magnet/32`
+- `output_file` should be the name of your output file - e.g. `Magnet32.otf`
+
+and the options are:
+- `-f`, `--format` which can be any one of `ufo`, `ttf` or `otf` (default `ttf`)
+- `-t`, `--tmp_path` is the location for temporary files
+- `-c`, `--code_page` is the code page, only `AmigaPL` codepage is implemented
+- `-a`, `--aspect_ratio` can be used to control the aspect ratio of the pixels - handy if you want to stretch or narrow each glyph. For a half-width font, use 0.5 (default `1.0`)
+- `-p`, `--pixel_component` constructs the font out of a pixel component. Handy if you want to change the shape of the pixel - why not try dots for a dot matrix effect!
 
 ## Sample fonts
 
