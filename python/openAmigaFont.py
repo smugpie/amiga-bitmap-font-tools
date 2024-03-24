@@ -70,7 +70,7 @@ def main(argv):
         if args.codepage:
             codeMap = getCodeMap(args.codepage)
         if args.aspect_ratio:
-            aspectRatio = args.aspect_ration
+            aspectRatio = args.aspect_ratio
         if args.pixel_component:
             usePixelComponent = args.pixel_component
 
